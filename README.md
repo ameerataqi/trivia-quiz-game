@@ -87,11 +87,17 @@ personal best" badge, and Play Again / Home buttons.
 points = (100 × difficultyMultiplier + 8 × secondsLeft) × comboMultiplier
 ```
 
+Every question gives the player **30 seconds**, on every difficulty. Difficulty
+changes how hard the questions are and what they are worth, not how long you get:
+
 | Difficulty | Time per question | Multiplier |
 | ---------- | ----------------- | ---------- |
-| Easy       | 20s               | ×1         |
-| Medium     | 15s               | ×1.5       |
-| Hard       | 10s               | ×2         |
+| Easy       | 30s               | ×1         |
+| Medium     | 30s               | ×1.5       |
+| Hard       | 30s               | ×2         |
+
+The clock is `SECONDS_PER_QUESTION` in `src/constants/gameConfig.js`. To bring
+back a time penalty on Hard, give that level its own `seconds` value.
 
 Each consecutive correct answer adds +0.1 to the combo multiplier, capped at ×2.
 In Team Battle the ⚡ Double power multiplies the final figure by 2 on top of

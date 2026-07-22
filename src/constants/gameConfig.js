@@ -5,13 +5,21 @@
 
 export const QUESTIONS_PER_ROUND = 10;
 
+/** Every question gets the same clock, whatever the difficulty. */
+export const SECONDS_PER_QUESTION = 30;
+
+/**
+ * Difficulty now changes how hard the questions are and how much they are
+ * worth — not how long you get. Give a level its own `seconds` if you want a
+ * time penalty back on Hard.
+ */
 export const DIFFICULTIES = [
   {
     id: 'Easy',
     label: 'Easy',
     emoji: '🌱',
-    blurb: 'Take your time',
-    seconds: 20,
+    blurb: 'Gentle warm-up',
+    seconds: SECONDS_PER_QUESTION,
     multiplier: 1,
     colors: ['#34D399', '#10B981'],
   },
@@ -19,8 +27,8 @@ export const DIFFICULTIES = [
     id: 'Medium',
     label: 'Medium',
     emoji: '🔥',
-    blurb: 'Keep it moving',
-    seconds: 15,
+    blurb: 'A real test',
+    seconds: SECONDS_PER_QUESTION,
     multiplier: 1.5,
     colors: ['#FFA62B', '#FB7A45'],
   },
@@ -28,8 +36,8 @@ export const DIFFICULTIES = [
     id: 'Hard',
     label: 'Hard',
     emoji: '💀',
-    blurb: 'Think fast',
-    seconds: 10,
+    blurb: 'Experts only',
+    seconds: SECONDS_PER_QUESTION,
     multiplier: 2,
     colors: ['#FB7185', '#DC2626'],
   },
@@ -62,6 +70,7 @@ export const RESULT_TIERS = [
 
 export default {
   QUESTIONS_PER_ROUND,
+  SECONDS_PER_QUESTION,
   DIFFICULTIES,
   DEFAULT_DIFFICULTY,
   FEEDBACK_DELAY_MS,

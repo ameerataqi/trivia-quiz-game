@@ -88,7 +88,7 @@ export function TeamSetupScreen({ navigation }) {
                   key={level.id}
                   label={level.label}
                   emoji={level.emoji}
-                  sublabel={`${level.seconds}s per Q`}
+                  sublabel={`${level.seconds}s · ${level.multiplier}× pts`}
                   selected={difficulty === level.id}
                   colors={level.colors}
                   onPress={() => setDifficulty(level.id)}
