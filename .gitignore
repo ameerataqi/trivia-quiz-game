@@ -10,3 +10,7 @@ web-build/
 *.key
 *.mobileprovision
 *.orig.*
+
+# Build output
+dist/
+.vercel
