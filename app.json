@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Trivia Blast",
+    "slug": "trivia-blast",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "triviablast",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#1B1146",
+    "assetBundlePatterns": ["**/*"],
+    "plugins": ["expo-status-bar"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.triviablast.app"
+    },
+    "android": {
+      "package": "com.triviablast.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#1B1146"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    }
+  }
+}
