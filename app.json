@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "scheme": "triviablast",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#1B1146",
+    "backgroundColor": "#12002E",
     "assetBundlePatterns": ["**/*"],
     "plugins": ["expo-status-bar"],
     "ios": {
@@ -16,7 +16,7 @@
     "android": {
       "package": "com.triviablast.app",
       "adaptiveIcon": {
-        "backgroundColor": "#1B1146"
+        "backgroundColor": "#12002E"
       }
     },
     "web": {

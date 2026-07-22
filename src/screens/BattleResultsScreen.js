@@ -4,7 +4,7 @@ import GradientBackground from '../components/GradientBackground';
 import PrimaryButton from '../components/PrimaryButton';
 import AnimatedNumber from './../components/AnimatedNumber';
 import { BATTLE_VERDICTS, DRAW_VERDICT, POWERS } from '../constants/teamConfig';
-import { colors, radius, shadows, spacing } from '../constants/theme';
+import { APP_BACKDROP, colors, radius, shadows, spacing } from '../constants/theme';
 import { contentMaxWidth, scale } from '../utils/responsive';
 import { finishFeedback } from '../utils/feedback';
 
@@ -51,9 +51,9 @@ export function BattleResultsScreen({ navigation, route }) {
     ],
   };
 
-  const backdrop = draw
-    ? ['#160B36', '#432A8E', '#8E5BD8']
-    : winner?.backdrop ?? ['#160B36', '#432A8E', '#8E5BD8'];
+  // A win is celebrated in the winner's colours; a draw falls back to the
+  // shared app backdrop since neither side owns the screen.
+  const backdrop = (!draw && winner?.backdrop) || APP_BACKDROP;
 
   return (
     <GradientBackground colors={backdrop}>

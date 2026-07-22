@@ -18,7 +18,7 @@ export const colors = {
   wrongDark: '#B91C1C',
 
   // Surfaces
-  backdrop: '#1B1146',
+  backdrop: '#12002E',
   card: '#FFFFFF',
   cardMuted: '#F4F2FF',
   overlay: 'rgba(255,255,255,0.14)',
@@ -32,11 +32,18 @@ export const colors = {
   textOnDarkMuted: 'rgba(255,255,255,0.76)',
 };
 
+/**
+ * The single backdrop every non-battle screen shares. Battle screens are the
+ * deliberate exception — they tint to whichever team is answering.
+ */
+export const APP_BACKDROP = ['#12002E', '#4A1B8C', '#B01E68'];
+
 /** Multi-stop gradients used for screen backdrops and buttons. */
 export const gradients = {
-  home: ['#7A5CFA', '#B14CE0', '#FF6B9D'],
-  quiz: ['#3B1E92', '#6C5CE7', '#8E63F0'],
-  results: ['#1F1259', '#5B3BD1', '#FF7EB3'],
+  app: APP_BACKDROP,
+  home: APP_BACKDROP,
+  quiz: APP_BACKDROP,
+  results: APP_BACKDROP,
   primaryButton: ['#7C5CFF', '#B14CE0'],
   successButton: ['#34D399', '#10B981'],
   warmButton: ['#FFB13D', '#FF7A45'],

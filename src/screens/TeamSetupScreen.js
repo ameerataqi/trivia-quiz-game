@@ -62,7 +62,7 @@ export function TeamSetupScreen({ navigation }) {
   };
 
   return (
-    <GradientBackground colors={['#12002E', '#4A1B8C', '#B01E68']}>
+    <GradientBackground variant="app">
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
