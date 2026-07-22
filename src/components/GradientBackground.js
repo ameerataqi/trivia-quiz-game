@@ -8,8 +8,15 @@ import { colors, gradients } from '../constants/theme';
  * Full-screen gradient backdrop with decorative blurred "bubbles" behind the
  * content. Wraps children in a SafeAreaView so nothing sits under a notch.
  */
-export function GradientBackground({ variant = 'home', children, style, edges = ['top', 'bottom'] }) {
-  const stops = gradients[variant] || gradients.home;
+export function GradientBackground({
+  variant = 'home',
+  /** Explicit stops win over `variant` — used to tint the screen per team. */
+  colors: overrideColors,
+  children,
+  style,
+  edges = ['top', 'bottom'],
+}) {
+  const stops = overrideColors || gradients[variant] || gradients.home;
 
   return (
     <LinearGradient

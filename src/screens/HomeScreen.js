@@ -133,6 +133,27 @@ export function HomeScreen({ navigation }) {
           </Text>
         </View>
 
+        <View style={[styles.battleCard, shadows.medium]}>
+          <Text style={styles.battleTitle}>⚔️ Team Battle</Text>
+          <Text style={styles.battleBlurb}>
+            Two teams, three categories each, one wildcard — and three powers apiece. Highest score
+            takes it.
+          </Text>
+          <PrimaryButton
+            label="Start a Battle"
+            icon="🔥"
+            variant="primary"
+            onPress={() => navigation.navigate('TeamSetup')}
+            testID="start-battle-cta"
+          />
+        </View>
+
+        <View style={styles.soloHeader}>
+          <View style={styles.rule} />
+          <Text style={styles.soloHeaderText}>OR PLAY SOLO</Text>
+          <View style={styles.rule} />
+        </View>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Choose your difficulty</Text>
           <View style={styles.difficultyRow}>
@@ -267,6 +288,41 @@ const styles = StyleSheet.create({
     color: colors.textOnDarkMuted,
     fontSize: scale(12.5),
     fontWeight: '600',
+  },
+  battleCard: {
+    gap: spacing.md,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    backgroundColor: 'rgba(12,4,44,0.42)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.32)',
+  },
+  battleTitle: {
+    color: colors.textOnDark,
+    fontSize: scale(21),
+    fontWeight: '900',
+  },
+  battleBlurb: {
+    color: colors.textOnDarkMuted,
+    fontSize: scale(13),
+    fontWeight: '600',
+    lineHeight: scale(19),
+  },
+  soloHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  rule: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.28)',
+  },
+  soloHeaderText: {
+    color: colors.textOnDarkMuted,
+    fontSize: scale(10.5),
+    fontWeight: '900',
+    letterSpacing: 1.4,
   },
   section: {
     gap: spacing.md,

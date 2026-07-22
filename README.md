@@ -25,7 +25,45 @@ npm run web       # run in a browser
 
 ---
 
-## What's in the game
+## Two ways to play
+
+**⚔️ Team Battle** — two teams on one device, head to head.
+**🧠 Solo Challenge** — one player, ten questions, chase your own best score.
+
+---
+
+## Team Battle
+
+Each team names itself and locks in **3 categories**. Over the battle a team
+answers **4 questions**: one from each of its own categories, plus **1 wildcard**
+drawn from a category it did *not* pick. Turns alternate, so the eight questions
+run Team A, Team B, Team A, and so on. Highest score wins; equal scores are
+called a dead heat.
+
+Neither team ever sees a question the other team was asked — both queues are
+drawn from one shared pool with no overlap.
+
+Between turns a **hand-over card** covers the screen ("Pass the device to…").
+The clock only starts when that team taps *We're Ready*, so nobody loses seconds
+while the phone is changing hands.
+
+### Powers — three each, one use apiece
+
+| Power | Effect |
+| ----- | ------ |
+| ⚡ **Double** | The question on screen scores **2×**. Spend it before you answer. |
+| 📞 **Call a Friend** | A **60-second** call timer opens. The question clock pauses for the whole call, and the question stays visible so you can read it down the phone. |
+| 🔄 **Swap** | Bins the current question and deals a fresh one, with a full clock. |
+
+Spent powers stay on screen marked *Used*, so both teams can always see what
+their opponent still has in hand.
+
+A power spent on a question you then get wrong — or time out on — is gone. That
+is the gamble.
+
+---
+
+## Solo Challenge
 
 **Home screen** — logo, animated hero, best score per difficulty, a difficulty
 picker, a category picker and a Start button. Your last picks are remembered.
@@ -56,7 +94,12 @@ points = (100 × difficultyMultiplier + 8 × secondsLeft) × comboMultiplier
 | Hard       | 10s               | ×2         |
 
 Each consecutive correct answer adds +0.1 to the combo multiplier, capped at ×2.
-The best score is stored per difficulty with **AsyncStorage**.
+In Team Battle the ⚡ Double power multiplies the final figure by 2 on top of
+that. Solo best scores are stored per difficulty with **AsyncStorage**.
+
+Battle length is set by `src/constants/teamConfig.js` — raise
+`QUESTIONS_PER_CATEGORY` to 2 or 3 for a longer game (6 or 9 questions per team
+plus the wildcard); nothing else needs changing.
 
 ---
 
@@ -70,7 +113,9 @@ src/
     AnimatedNumber.js     Counts up to a new number instead of snapping
     AnswerButton.js       One answer option, with all four feedback states
     ExplanationPanel.js   Post-answer headline, points and explanation
+    FriendCallBar.js      60-second "call a friend" panel
     GradientBackground.js Screen backdrop + SafeAreaView wrapper
+    PowerButton.js        One single-use team power
     PrimaryButton.js      Main call-to-action button
     ProgressBar.js        Animated progress track
     QuestionCard.js       Question text with category/difficulty tags
@@ -78,9 +123,12 @@ src/
     ScoreDisplay.js       Live score pill, combo badge, floating "+points"
     SelectorChip.js       Difficulty and category picker chip
     StatTile.js           Small labelled figure
+    TeamScoreboard.js     Both teams' live scores
     Timer.js              Countdown badge + depleting bar
+    TurnCard.js           "Pass the device" hand-over card
   constants/
     gameConfig.js         Round length, timers, scoring, result tiers
+    teamConfig.js         Battle rules, powers, team colours, verdicts
     theme.js              Colours, gradients, spacing, radii, shadows
   data/
     questions.json        The question bank
@@ -88,16 +136,21 @@ src/
   hooks/
     useBestScores.js      Reads stored records, refreshes on screen focus
     useCountdown.js       Per-question countdown
-    useQuiz.js            All gameplay state for one round
+    useQuiz.js            All gameplay state for one solo round
+    useTeamBattle.js      Turns, scores and powers for one battle
   navigation/
-    RootNavigator.js      Home → Quiz → Results stack
+    RootNavigator.js      Home → Quiz/TeamSetup → Results stack
   screens/
     HomeScreen.js
     QuizScreen.js
     ResultsScreen.js
+    TeamSetupScreen.js
+    BattleScreen.js
+    BattleResultsScreen.js
   storage/
     scoreStorage.js       AsyncStorage reads/writes
   utils/
+    battleBuilder.js      Non-overlapping question queues for two teams
     feedback.js           Optional haptic "sound effects"
     questionPool.js       Round building, filtering and validation
     responsive.js         Screen-size scaling helpers
