@@ -15,6 +15,9 @@ npx expo start
 
 Scan the QR code with **Expo Go** (Android) or the **Camera app** (iOS).
 
+The project targets **Expo SDK 54**. Expo Go must be a build that supports SDK
+54 — a newer Expo Go that has dropped SDK 54 will refuse to open it.
+
 Other targets:
 
 ```bash
@@ -207,8 +210,8 @@ The bank currently ships **142 questions across 14 categories**.
 
 | Package                                 | Why                                |
 | --------------------------------------- | ---------------------------------- |
-| `expo`                                   | SDK 57                             |
-| `react-native` / `react`                 | 0.86 / 19.2                        |
+| `expo`                                   | SDK 54                             |
+| `react-native` / `react`                 | 0.81 / 19.1                        |
 | `@react-navigation/native` + `native-stack` | Screen navigation               |
 | `react-native-screens`                   | Native screen primitives           |
 | `react-native-safe-area-context`         | Notch-safe layout                  |
