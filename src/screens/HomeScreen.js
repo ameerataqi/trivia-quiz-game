@@ -99,8 +99,9 @@ export function HomeScreen({ navigation }) {
   const activeLevel = DIFFICULTIES.find((d) => d.id === difficulty) ?? DIFFICULTIES[1];
   const activeCategory = getCategoryMeta(category);
 
+  // Solo starts via the "play against the AI?" ask-screen.
   const startGame = () => {
-    navigation.navigate('Quiz', { category, difficulty });
+    navigation.navigate('AiMode', { category, difficulty });
   };
 
   return (

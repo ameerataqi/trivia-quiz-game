@@ -5,6 +5,8 @@ import HomeScreen from '../screens/HomeScreen';
 import QuizScreen from '../screens/QuizScreen';
 import ResultsScreen from '../screens/ResultsScreen';
 import TeamSetupScreen from '../screens/TeamSetupScreen';
+import AiModeScreen from '../screens/AiModeScreen';
+import AiQuizScreen from '../screens/AiQuizScreen';
 import BattleScreen from '../screens/BattleScreen';
 import BattleResultsScreen from '../screens/BattleResultsScreen';
 import { colors } from '../constants/theme';
@@ -46,6 +48,12 @@ export function RootNavigator() {
           options={{ animation: 'fade', gestureEnabled: false }}
         />
         <Stack.Screen name="TeamSetup" component={TeamSetupScreen} />
+        <Stack.Screen name="AiMode" component={AiModeScreen} />
+        <Stack.Screen
+          name="AiQuiz"
+          component={AiQuizScreen}
+          options={{ animation: 'fade_from_bottom', gestureEnabled: false }}
+        />
         <Stack.Screen
           name="Battle"
           component={BattleScreen}
