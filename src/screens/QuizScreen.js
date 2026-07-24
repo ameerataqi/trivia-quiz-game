@@ -17,6 +17,8 @@ import ProgressBar from '../components/ProgressBar';
 import ScoreDisplay from '../components/ScoreDisplay';
 import Timer from '../components/Timer';
 import PrimaryButton from '../components/PrimaryButton';
+import LoadingState from '../components/LoadingState';
+import ErrorState from '../components/ErrorState';
 import useQuiz, { PHASE } from '../hooks/useQuiz';
 import useCountdown from '../hooks/useCountdown';
 import { getDifficultyConfig } from '../utils/scoring';
@@ -83,6 +85,30 @@ export function QuizScreen({ navigation, route }) {
     quiz.next();
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   };
+
+  if (quiz.phase === PHASE.LOADING) {
+    return (
+      <GradientBackground variant="quiz">
+        <LoadingState
+          title="Loading questions…"
+          detail={`${category === ALL_CATEGORIES ? 'Any category' : category} · ${difficulty}`}
+        />
+      </GradientBackground>
+    );
+  }
+
+  if (quiz.phase === PHASE.ERROR) {
+    return (
+      <GradientBackground variant="quiz">
+        <ErrorState
+          message={quiz.error?.message}
+          retryable={quiz.error?.retryable}
+          onRetry={quiz.retry}
+          onBack={() => navigation.navigate('Home')}
+        />
+      </GradientBackground>
+    );
+  }
 
   if (!quiz.current) {
     return (
@@ -168,6 +194,7 @@ export function QuizScreen({ navigation, route }) {
               explanation={quiz.current.explanation}
               correctAnswer={quiz.current.correctAnswer}
               points={quiz.lastAward?.points ?? 0}
+              meta={`${quiz.current.category} · ${quiz.current.difficulty}`}
             />
           )}
         </ScrollView>

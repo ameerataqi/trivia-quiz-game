@@ -3,7 +3,7 @@
  * the scoring formula inputs. Change these to rebalance the game.
  */
 
-export const QUESTIONS_PER_ROUND = 10;
+export const QUESTIONS_PER_ROUND = 12;
 
 /** Every question gets the same clock, whatever the difficulty. */
 export const SECONDS_PER_QUESTION = 30;

@@ -11,10 +11,9 @@ import {
 import GradientBackground from '../components/GradientBackground';
 import PrimaryButton from '../components/PrimaryButton';
 import SelectorChip from '../components/SelectorChip';
-import { CATEGORIES, ALL_CATEGORIES } from '../data/categories';
+import { CATEGORIES, ALL_CATEGORIES, getCategoryMeta } from '../data/categories';
 import { DIFFICULTIES, DEFAULT_DIFFICULTY, QUESTIONS_PER_ROUND } from '../constants/gameConfig';
 import { colors, radius, shadows, spacing } from '../constants/theme';
-import { countAvailable } from '../utils/questionPool';
 import { loadPrefs, savePrefs } from '../storage/scoreStorage';
 import useBestScores from '../hooks/useBestScores';
 import { contentMaxWidth, scale } from '../utils/responsive';
@@ -96,9 +95,9 @@ export function HomeScreen({ navigation }) {
     ],
   };
 
-  const available = countAvailable(category, difficulty);
   const bestForDifficulty = best[difficulty] ?? 0;
   const activeLevel = DIFFICULTIES.find((d) => d.id === difficulty) ?? DIFFICULTIES[1];
+  const activeCategory = getCategoryMeta(category);
 
   const startGame = () => {
     navigation.navigate('Quiz', { category, difficulty });
@@ -179,7 +178,7 @@ export function HomeScreen({ navigation }) {
             {CATEGORIES.map((item) => (
               <SelectorChip
                 key={item.id}
-                label={item.name}
+                label={item.shortName}
                 emoji={item.emoji}
                 selected={category === item.id}
                 colors={item.colors}
@@ -192,9 +191,7 @@ export function HomeScreen({ navigation }) {
 
         <View style={styles.footer}>
           <Text style={styles.availability}>
-            {available >= QUESTIONS_PER_ROUND
-              ? `${QUESTIONS_PER_ROUND} questions · ${category} · ${activeLevel.blurb}`
-              : `Only ${available} exact matches — we'll top the round up with related questions.`}
+            {QUESTIONS_PER_ROUND} live questions · {activeCategory.shortName} · {activeLevel.blurb}
           </Text>
 
           <PrimaryButton

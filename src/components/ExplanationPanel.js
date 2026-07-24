@@ -10,10 +10,14 @@ const HEADLINES = {
 };
 
 /**
- * Post-answer feedback: a headline, the points earned and the short
- * explanation from the question data. Slides up as the answers resolve.
+ * Post-answer feedback: a headline, the points earned and the correct answer.
+ *
+ * The Open Trivia Database does not ship explanations, so `explanation` is
+ * optional — when it is absent the panel simply states the verified answer
+ * rather than inventing prose about it. `meta` carries the category and
+ * difficulty so the panel still has useful context to show.
  */
-export function ExplanationPanel({ outcome, explanation, correctAnswer, points }) {
+export function ExplanationPanel({ outcome, explanation, correctAnswer, points, meta }) {
   const anim = useRef(new Animated.Value(0)).current;
   const headline = HEADLINES[outcome] || HEADLINES.wrong;
 
@@ -48,13 +52,13 @@ export function ExplanationPanel({ outcome, explanation, correctAnswer, points }
         )}
       </View>
 
-      {outcome !== 'correct' && (
-        <Text style={styles.answerLine}>
-          Answer: <Text style={styles.answerStrong}>{correctAnswer}</Text>
-        </Text>
-      )}
+      <Text style={styles.answerLine}>
+        {outcome === 'correct' ? 'You answered ' : 'Correct answer: '}
+        <Text style={styles.answerStrong}>{correctAnswer}</Text>
+      </Text>
 
-      <Text style={styles.explanation}>{explanation}</Text>
+      {!!explanation && <Text style={styles.explanation}>{explanation}</Text>}
+      {!explanation && !!meta && <Text style={styles.meta}>{meta}</Text>}
     </Animated.View>
   );
 }
@@ -101,6 +105,11 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: scale(14.5),
     lineHeight: scale(21),
+    fontWeight: '600',
+  },
+  meta: {
+    color: colors.textMuted,
+    fontSize: scale(12.5),
     fontWeight: '600',
   },
 });

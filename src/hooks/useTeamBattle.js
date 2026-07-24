@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buildBattle } from '../utils/battleBuilder';
 import { pointsForAnswer, getDifficultyConfig } from '../utils/scoring';
 import {
@@ -9,6 +9,9 @@ import {
 } from '../constants/teamConfig';
 
 export const BATTLE_PHASE = {
+  /** Fetching questions from the Open Trivia Database. */
+  LOADING: 'loading',
+  ERROR: 'error',
   /** "Pass the device to X" card — gates the clock between turns. */
   TURN_INTRO: 'turnIntro',
   ASKING: 'asking',
@@ -31,15 +34,11 @@ const freshPowers = () => ({
  */
 export function useTeamBattle({ teams: teamInput, difficulty }) {
   const difficultyConfig = getDifficultyConfig(difficulty);
-  const [battleId, setBattleId] = useState(0);
 
-  const built = useMemo(
-    () => buildBattle({ teams: teamInput, difficulty }),
-    [teamInput, difficulty, battleId],
-  );
-
-  const [queues, setQueues] = useState(built.queues);
-  const [spares, setSpares] = useState(built.spares);
+  const [queues, setQueues] = useState([[], []]);
+  const [spares, setSpares] = useState([]);
+  const [error, setError] = useState(null);
+  const [progress, setProgress] = useState({ done: 0, total: 0, label: '' });
 
   const [teams, setTeams] = useState(() =>
     teamInput.map((team, index) => ({
@@ -56,7 +55,7 @@ export function useTeamBattle({ teams: teamInput, difficulty }) {
   );
 
   const [turn, setTurn] = useState(0);
-  const [phase, setPhase] = useState(BATTLE_PHASE.TURN_INTRO);
+  const [phase, setPhase] = useState(BATTLE_PHASE.LOADING);
   const [selected, setSelected] = useState(null);
   const [timedOut, setTimedOut] = useState(false);
   const [lastAward, setLastAward] = useState(null);
@@ -67,6 +66,62 @@ export function useTeamBattle({ teams: teamInput, difficulty }) {
 
   // Whichever of "answer" or "timeout" lands first wins the turn.
   const lockedRef = useRef(false);
+  // Lets an in-flight fetch know it has been superseded.
+  const requestRef = useRef(0);
+
+  /** Fetches a battle's worth of questions and resets both teams. */
+  const load = useCallback(() => {
+    const requestId = requestRef.current + 1;
+    requestRef.current = requestId;
+
+    setPhase(BATTLE_PHASE.LOADING);
+    setError(null);
+    setProgress({ done: 0, total: 0, label: '' });
+
+    buildBattle({
+      teams: teamInput,
+      difficulty,
+      onProgress: (p) => {
+        if (requestRef.current === requestId) setProgress(p);
+      },
+    })
+      .then(({ queues: builtQueues, spares: builtSpares }) => {
+        if (requestRef.current !== requestId) return;
+        setQueues(builtQueues);
+        setSpares(builtSpares);
+        setTeams((prev) =>
+          prev.map((team) => ({
+            ...team,
+            score: 0,
+            correct: 0,
+            streak: 0,
+            bestStreak: 0,
+            powers: freshPowers(),
+            powersUsed: [],
+          })),
+        );
+        setTurn(0);
+        setSelected(null);
+        setTimedOut(false);
+        setLastAward(null);
+        setDoubleActive(false);
+        setCallActive(false);
+        lockedRef.current = false;
+        setPhase(BATTLE_PHASE.TURN_INTRO);
+      })
+      .catch((err) => {
+        if (requestRef.current !== requestId) return;
+        setError({ message: err.message, retryable: err.retryable !== false });
+        setPhase(BATTLE_PHASE.ERROR);
+      });
+  }, [teamInput, difficulty]);
+
+  useEffect(() => {
+    load();
+    return () => {
+      requestRef.current += 1;
+    };
+  }, [load]);
 
   const totalTurns = QUESTIONS_PER_TEAM * teams.length;
   const activeIndex = turn % teams.length;
@@ -200,32 +255,8 @@ export function useTeamBattle({ teams: teamInput, difficulty }) {
 
   const endCall = useCallback(() => setCallActive(false), []);
 
-  /** Same teams, same categories, brand new questions. */
-  const rematch = useCallback(() => {
-    const rebuilt = buildBattle({ teams: teamInput, difficulty });
-    setBattleId((b) => b + 1);
-    setQueues(rebuilt.queues);
-    setSpares(rebuilt.spares);
-    setTeams((prev) =>
-      prev.map((team) => ({
-        ...team,
-        score: 0,
-        correct: 0,
-        streak: 0,
-        bestStreak: 0,
-        powers: freshPowers(),
-        powersUsed: [],
-      })),
-    );
-    setTurn(0);
-    setPhase(BATTLE_PHASE.TURN_INTRO);
-    setSelected(null);
-    setTimedOut(false);
-    setLastAward(null);
-    setDoubleActive(false);
-    setCallActive(false);
-    lockedRef.current = false;
-  }, [teamInput, difficulty]);
+  /** Same teams, same categories, freshly fetched questions. */
+  const rematch = useCallback(() => load(), [load]);
 
   const summary = useMemo(() => {
     const ranked = [...teams].sort((a, b) => b.score - a.score);
@@ -257,6 +288,8 @@ export function useTeamBattle({ teams: teamInput, difficulty }) {
     questionNonce,
     // state
     phase,
+    error,
+    progress,
     selected,
     timedOut,
     lastAward,
@@ -264,6 +297,7 @@ export function useTeamBattle({ teams: teamInput, difficulty }) {
     callActive,
     summary,
     // actions
+    retry: load,
     beginTurn,
     answer,
     timeout,

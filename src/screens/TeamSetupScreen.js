@@ -12,7 +12,7 @@ import {
 import GradientBackground from '../components/GradientBackground';
 import PrimaryButton from '../components/PrimaryButton';
 import SelectorChip from '../components/SelectorChip';
-import { CATEGORIES, ALL_CATEGORIES } from '../data/categories';
+import { PICKABLE_CATEGORIES } from '../data/categories';
 import { DIFFICULTIES, DEFAULT_DIFFICULTY } from '../constants/gameConfig';
 import {
   CATEGORIES_PER_TEAM,
@@ -22,8 +22,8 @@ import {
 import { colors, radius, shadows, spacing } from '../constants/theme';
 import { contentMaxWidth, scale } from '../utils/responsive';
 
-/** "All" is a solo-mode convenience; teams pick real categories. */
-const PICKABLE = CATEGORIES.filter((c) => c.id !== ALL_CATEGORIES);
+/** "Any Category" is a solo-mode convenience; teams pick real categories. */
+const PICKABLE = PICKABLE_CATEGORIES;
 
 export function TeamSetupScreen({ navigation }) {
   const { width } = useWindowDimensions();
@@ -139,7 +139,7 @@ export function TeamSetupScreen({ navigation }) {
                     return (
                       <SelectorChip
                         key={category.id}
-                        label={category.name}
+                        label={category.shortName}
                         emoji={category.emoji}
                         selected={selected}
                         colors={theme.chip}

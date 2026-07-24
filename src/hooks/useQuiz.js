@@ -1,34 +1,31 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { buildRound } from '../utils/questionPool';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { fetchQuestions } from '../api/openTdb';
 import { pointsForAnswer, getDifficultyConfig } from '../utils/scoring';
 import { QUESTIONS_PER_ROUND } from '../constants/gameConfig';
 
 export const PHASE = {
+  LOADING: 'loading',
+  ERROR: 'error',
   ASKING: 'asking',
   ANSWERED: 'answered',
   FINISHED: 'finished',
 };
 
 /**
- * Owns all gameplay state for one round: the questions, the current index,
- * the score, the streak and the per-question outcome log.
+ * Owns all gameplay state for one solo round.
  *
- * The countdown itself lives in the screen (see useCountdown) and hands the
- * remaining seconds to `answer()` so time bonuses can be awarded.
+ * Questions come from the Open Trivia Database, fetched once when the round
+ * starts. The countdown lives in the screen (see useCountdown) and passes the
+ * remaining seconds into `answer()` so time bonuses can be awarded.
  */
 export function useQuiz({ category, difficulty, count = QUESTIONS_PER_ROUND }) {
   const difficultyConfig = getDifficultyConfig(difficulty);
 
-  // Round number is bumped on replay to force a brand new shuffled set.
-  const [roundId, setRoundId] = useState(0);
-
-  const questions = useMemo(
-    () => buildRound({ category, difficulty, count }),
-    [category, difficulty, count, roundId],
-  );
+  const [questions, setQuestions] = useState([]);
+  const [phase, setPhase] = useState(PHASE.LOADING);
+  const [error, setError] = useState(null);
 
   const [index, setIndex] = useState(0);
-  const [phase, setPhase] = useState(PHASE.ASKING);
   const [selected, setSelected] = useState(null);
   const [timedOut, setTimedOut] = useState(false);
   const [score, setScore] = useState(0);
@@ -40,17 +37,51 @@ export function useQuiz({ category, difficulty, count = QUESTIONS_PER_ROUND }) {
   // Guards against a double-tap or a timeout landing on an already-answered
   // question — whichever arrives first wins.
   const lockedRef = useRef(false);
+  // Lets an in-flight fetch know it has been superseded (replay / unmount).
+  const requestRef = useRef(0);
+
+  const load = useCallback(() => {
+    const requestId = requestRef.current + 1;
+    requestRef.current = requestId;
+
+    setPhase(PHASE.LOADING);
+    setError(null);
+    setIndex(0);
+    setSelected(null);
+    setTimedOut(false);
+    setScore(0);
+    setStreak(0);
+    setBestStreak(0);
+    setLastAward(null);
+    setLog([]);
+    lockedRef.current = false;
+
+    fetchQuestions({ amount: count, category, difficulty })
+      .then((fetched) => {
+        if (requestRef.current !== requestId) return;
+        setQuestions(fetched);
+        setPhase(PHASE.ASKING);
+      })
+      .catch((err) => {
+        if (requestRef.current !== requestId) return;
+        setError({ message: err.message, retryable: err.retryable !== false });
+        setPhase(PHASE.ERROR);
+      });
+  }, [category, difficulty, count]);
+
+  useEffect(() => {
+    load();
+    return () => {
+      // Any late response is ignored once this hook goes away.
+      requestRef.current += 1;
+    };
+  }, [load]);
 
   const current = questions[index] ?? null;
   const total = questions.length;
   const isLast = index >= total - 1;
   const correctCount = log.filter((entry) => entry.correct).length;
 
-  const record = useCallback((entry) => {
-    setLog((prev) => [...prev, entry]);
-  }, []);
-
-  /** Player picked an option. */
   const answer = useCallback(
     (option, secondsLeft) => {
       if (lockedRef.current || !current) return null;
@@ -71,21 +102,23 @@ export function useQuiz({ category, difficulty, count = QUESTIONS_PER_ROUND }) {
       setStreak(nextStreak);
       setLastAward(correct ? award : null);
       setPhase(PHASE.ANSWERED);
-      record({
-        id: current.id,
-        question: current.question,
-        correct,
-        selected: option,
-        correctAnswer: current.correctAnswer,
-        points: award.points,
-      });
+      setLog((prev) => [
+        ...prev,
+        {
+          id: current.id,
+          question: current.question,
+          correct,
+          selected: option,
+          correctAnswer: current.correctAnswer,
+          points: award.points,
+        },
+      ]);
 
       return { correct, ...award };
     },
-    [current, difficulty, record, streak],
+    [current, difficulty, streak],
   );
 
-  /** The clock hit zero without a selection. */
   const timeout = useCallback(() => {
     if (lockedRef.current || !current) return;
     lockedRef.current = true;
@@ -95,17 +128,19 @@ export function useQuiz({ category, difficulty, count = QUESTIONS_PER_ROUND }) {
     setStreak(0);
     setLastAward(null);
     setPhase(PHASE.ANSWERED);
-    record({
-      id: current.id,
-      question: current.question,
-      correct: false,
-      selected: null,
-      correctAnswer: current.correctAnswer,
-      points: 0,
-    });
-  }, [current, record]);
+    setLog((prev) => [
+      ...prev,
+      {
+        id: current.id,
+        question: current.question,
+        correct: false,
+        selected: null,
+        correctAnswer: current.correctAnswer,
+        points: 0,
+      },
+    ]);
+  }, [current]);
 
-  /** Advance to the next question, or finish the round. */
   const next = useCallback(() => {
     if (phase !== PHASE.ANSWERED) return;
 
@@ -122,20 +157,8 @@ export function useQuiz({ category, difficulty, count = QUESTIONS_PER_ROUND }) {
     setIndex((i) => i + 1);
   }, [isLast, phase]);
 
-  /** Start a completely fresh round with newly shuffled questions. */
-  const restart = useCallback(() => {
-    lockedRef.current = false;
-    setRoundId((r) => r + 1);
-    setIndex(0);
-    setPhase(PHASE.ASKING);
-    setSelected(null);
-    setTimedOut(false);
-    setScore(0);
-    setStreak(0);
-    setBestStreak(0);
-    setLastAward(null);
-    setLog([]);
-  }, []);
+  /** Start a fresh round — fetches a new set from the API. */
+  const restart = useCallback(() => load(), [load]);
 
   const summary = useMemo(
     () => ({
@@ -161,6 +184,7 @@ export function useQuiz({ category, difficulty, count = QUESTIONS_PER_ROUND }) {
     isLast,
     // state
     phase,
+    error,
     selected,
     timedOut,
     score,
@@ -175,6 +199,7 @@ export function useQuiz({ category, difficulty, count = QUESTIONS_PER_ROUND }) {
     timeout,
     next,
     restart,
+    retry: load,
   };
 }
 

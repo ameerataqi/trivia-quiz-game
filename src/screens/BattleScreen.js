@@ -20,6 +20,8 @@ import PowerButton from '../components/PowerButton';
 import TeamScoreboard from '../components/TeamScoreboard';
 import TurnCard from '../components/TurnCard';
 import FriendCallBar from '../components/FriendCallBar';
+import LoadingState from '../components/LoadingState';
+import ErrorState from '../components/ErrorState';
 import useTeamBattle, { BATTLE_PHASE } from '../hooks/useTeamBattle';
 import useCountdown from '../hooks/useCountdown';
 import { SOURCE } from '../utils/battleBuilder';
@@ -102,6 +104,35 @@ export function BattleScreen({ navigation, route }) {
     }
   };
 
+  if (battle.phase === BATTLE_PHASE.LOADING) {
+    const { done, total, label } = battle.progress;
+    return (
+      <GradientBackground colors={battle.activeTeam.backdrop}>
+        <LoadingState
+          title="Building the battle…"
+          detail={
+            total
+              ? `${label ? `${label} · ` : ''}${done} of ${total} loaded`
+              : 'Contacting the trivia database'
+          }
+        />
+      </GradientBackground>
+    );
+  }
+
+  if (battle.phase === BATTLE_PHASE.ERROR) {
+    return (
+      <GradientBackground colors={battle.activeTeam.backdrop}>
+        <ErrorState
+          message={battle.error?.message}
+          retryable={battle.error?.retryable}
+          onRetry={battle.retry}
+          onBack={() => navigation.navigate('Home')}
+        />
+      </GradientBackground>
+    );
+  }
+
   if (!battle.current) {
     return (
       <GradientBackground colors={battle.activeTeam.backdrop}>
@@ -126,7 +157,12 @@ export function BattleScreen({ navigation, route }) {
     return ANSWER_STATE.DIMMED;
   };
 
-  const isWildcard = battle.source === SOURCE.WILDCARD;
+  // A question is a surprise whenever it is not from one of the team's own
+  // categories — whether it was dealt as the wildcard or used as a fallback
+  // fill when a category fetch came up short.
+  const isWildcard =
+    battle.source === SOURCE.WILDCARD ||
+    !(battle.activeTeam.categories || []).includes(battle.current.category);
 
   return (
     <GradientBackground colors={battle.activeTeam.backdrop}>
@@ -235,6 +271,7 @@ export function BattleScreen({ navigation, route }) {
               explanation={battle.current.explanation}
               correctAnswer={battle.current.correctAnswer}
               points={battle.lastAward?.points ?? 0}
+              meta={`${battle.current.category} · ${battle.current.difficulty}`}
             />
           )}
         </ScrollView>
