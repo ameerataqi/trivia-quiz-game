@@ -15,3 +15,4 @@ web-build/
 dist/
 .vercel
 .env*
+!.env.example
