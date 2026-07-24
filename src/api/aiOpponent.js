@@ -33,12 +33,40 @@ function parseChoice(text) {
 }
 
 /**
- * Asks the model one question.
+ * The free-tier pool intermittently 429s even at low volume, so failed calls
+ * are retried a couple of times. The player is usually still reading the
+ * question, so the retries cost nothing visible.
+ */
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 4000;
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Asks the model one question, retrying transient failures.
  *
  * @param {object} question normalised question ({ question, options })
  * @returns {Promise<{ok: boolean, letter?: string, answer?: string, reason?: string}>}
  */
 export async function askAi(question) {
+  let last = { ok: false, reason: 'unknown' };
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    last = await askOnce(question);
+    if (last.ok) return last;
+    // Only transient failures are worth retrying.
+    const transient =
+      last.reason === 'network' ||
+      last.reason === 'timeout' ||
+      /^http-(429|5\d\d)$/.test(last.reason || '');
+    if (!transient || attempt === MAX_ATTEMPTS) break;
+    await wait(RETRY_DELAY_MS);
+  }
+
+  return last;
+}
+
+async function askOnce(question) {
   const apiKey = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY;
   if (!apiKey) return { ok: false, reason: 'missing-key' };
 
